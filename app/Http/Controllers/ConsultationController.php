@@ -6,16 +6,15 @@ use Illuminate\Http\Request;
 
 class ConsultationController extends Controller
 {
-     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    /**
+      * Display a listing of the resource.
+      *
+      * @return \Illuminate\Http\Response
+      */
     public function index()
     {
-        return view('admin.banner', [
-            'data' => DB::table('banner')->get()
-        ]);
+        $data = Consultation::paginate(10);
+        return response()->json(['statusCode'=>'200','message'=>'Data Consultation has been obtained !','data'=>$data], 200);
     }
 
     /**
@@ -26,25 +25,17 @@ class ConsultationController extends Controller
      */
     public function store(Request $request)
     {
+        // Validator
 
+        $data = [
+            'title'=>$request->title,
+            'body'=>$request->body,
+            'status'=>0,
+        ];
 
-        $this->validate($request, [
-            'gambar' => 'required',
-        ]);
+        Consultation::create($data);
 
-
-        if ($request->hasFile('gambar')) {
-            $file = $request->file('gambar');
-            $thumbname = time() . '-' . $file->getClientOriginalName();
-            $file->move(public_path() . '/banner' . '/', $thumbname);
-            DB::table('banner')->insert([
-                'gambar' => $thumbname,
-            ]);
-        }
-
-
-
-        return redirect()->back()->with(['message'=>'Banner berhasil ditambahkan','status'=>'success']);
+        return response()->json(['statusCode'=>'200','message'=>'Consultation data has been saved successfully !','data'=>$data], 200);
     }
 
 
@@ -57,19 +48,16 @@ class ConsultationController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $data = [
+            'title'=>$request->title,
+            'body'=>$request->body,
+            'status'=>0,
+        ];
 
-        if ($request->hasFile('gambar')) {
-            $file = $request->file('gambar');
-            $thumbname = time() . '-' . $file->getClientOriginalName();
-            $file->move(public_path() . '/banner' . '/', $thumbname);
-            DB::table('banner')->where('id',$id)->update([
-                'gambar' => $thumbname,
-            ]);
-        }
+        Consultation::where('id', $id)->update($data);
 
 
-
-        return redirect()->back()->with(['message'=>'Banner berhasil di update','status'=>'success']);
+        return response()->json(['statusCode'=>'200','message'=>'Consultation data has been saved successfully !','data'=>$data], 200);
     }
 
     /**
@@ -80,8 +68,8 @@ class ConsultationController extends Controller
      */
     public function destroy($id)
     {
+        Consultation::where('id', $id)->delete();
 
-        DB::table('banner')->where('id',$id)->delete();
-        return redirect()->route('admin.banner.index')->with(['message'=>'Banner berhasil di delete','status'=>'success']);
+        return response()->json(['statusCode'=>'200','message'=>'Consultation data deleted successfully !'], 200);
     }
 }

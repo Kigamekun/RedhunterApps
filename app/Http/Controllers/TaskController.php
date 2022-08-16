@@ -6,16 +6,15 @@ use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-     /**
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        return view('admin.banner', [
-            'data' => DB::table('banner')->get()
-        ]);
+        $data = Task::paginate(10);
+        return response()->json(['statusCode'=>'200','message'=>'Data Task has been obtained !','data'=>$data], 200);
     }
 
     /**
@@ -26,25 +25,34 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
+        // Validator
+        $data = [
+            'nama'=>$request->nama,
+            'objective'=>$request->objective,
+        ];
+        $task = Task::create($data);
+        foreach ($request->questions as $key => $question) {
+            $quest = Question::create([
+                'questions'=>$request->questions,
+                'is_active'=>true,
+                'task_id'=>$task,
+                'type'=>$question->type
+            ])->id;
 
-
-        $this->validate($request, [
-            'gambar' => 'required',
-        ]);
-
-
-        if ($request->hasFile('gambar')) {
-            $file = $request->file('gambar');
-            $thumbname = time() . '-' . $file->getClientOriginalName();
-            $file->move(public_path() . '/banner' . '/', $thumbname);
-            DB::table('banner')->insert([
-                'gambar' => $thumbname,
-            ]);
+            if ($question->type == 'multiple_choice') {
+                foreach ($request->choices as $key => $choice) {
+                    Choice::create([
+                        'question_id'=>$quest,
+                        'is_right_choice'=>$choice->is_right_choice,
+                        'choice'=>$choice->choice,
+                    ]);
+                }
+            }
         }
 
 
 
-        return redirect()->back()->with(['message'=>'Banner berhasil ditambahkan','status'=>'success']);
+        return response()->json(['statusCode'=>'200','message'=>'Task data has been saved successfully !','data'=>$data], 200);
     }
 
 
@@ -57,19 +65,19 @@ class TaskController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $data = [
+            'appointment_id'=>$request->appointment_id,
+            'rate'=>$request->rate,
+            'reason'=>$request->reason,
+            'summary'=>$request->summary,
+            'constrain'=>$request->constrain,
+            'summary'=>$request->summary,
+            ];
 
-        if ($request->hasFile('gambar')) {
-            $file = $request->file('gambar');
-            $thumbname = time() . '-' . $file->getClientOriginalName();
-            $file->move(public_path() . '/banner' . '/', $thumbname);
-            DB::table('banner')->where('id',$id)->update([
-                'gambar' => $thumbname,
-            ]);
-        }
+        Task::where('id', $id)->update($data);
 
 
-
-        return redirect()->back()->with(['message'=>'Banner berhasil di update','status'=>'success']);
+        return response()->json(['statusCode'=>'200','message'=>'Task data has been saved successfully !','data'=>$data], 200);
     }
 
     /**
@@ -80,8 +88,16 @@ class TaskController extends Controller
      */
     public function destroy($id)
     {
+        Task::where('id', $id)->delete();
 
-        DB::table('banner')->where('id',$id)->delete();
-        return redirect()->route('admin.banner.index')->with(['message'=>'Banner berhasil di delete','status'=>'success']);
+        return response()->json(['statusCode'=>'200','message'=>'Task data deleted successfully !'], 200);
+    }
+
+
+    public function createQuestion(Request $request)
+    {
+        Question::create([
+            ''
+        ]);
     }
 }

@@ -6,16 +6,15 @@ use Illuminate\Http\Request;
 
 class JournalController extends Controller
 {
-     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    /**
+      * Display a listing of the resource.
+      *
+      * @return \Illuminate\Http\Response
+      */
     public function index()
     {
-        return view('admin.banner', [
-            'data' => DB::table('banner')->get()
-        ]);
+        $data = Journal::paginate(10);
+        return response()->json(['statusCode'=>'200','message'=>'Data Journal has been obtained !','data'=>$data], 200);
     }
 
     /**
@@ -26,25 +25,20 @@ class JournalController extends Controller
      */
     public function store(Request $request)
     {
+        // Validator
 
+        $data = [
+            'appointment_id'=>$request->appointment_id,
+            'rate'=>$request->rate,
+            'reason'=>$request->reason,
+            'summary'=>$request->summary,
+            'constrain'=>$request->constrain,
+            'summary'=>$request->summary,
+        ];
 
-        $this->validate($request, [
-            'gambar' => 'required',
-        ]);
+        Journal::create($data);
 
-
-        if ($request->hasFile('gambar')) {
-            $file = $request->file('gambar');
-            $thumbname = time() . '-' . $file->getClientOriginalName();
-            $file->move(public_path() . '/banner' . '/', $thumbname);
-            DB::table('banner')->insert([
-                'gambar' => $thumbname,
-            ]);
-        }
-
-
-
-        return redirect()->back()->with(['message'=>'Banner berhasil ditambahkan','status'=>'success']);
+        return response()->json(['statusCode'=>'200','message'=>'Journal data has been saved successfully !','data'=>$data], 200);
     }
 
 
@@ -57,19 +51,19 @@ class JournalController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $data = [
+            'appointment_id'=>$request->appointment_id,
+            'rate'=>$request->rate,
+            'reason'=>$request->reason,
+            'summary'=>$request->summary,
+            'constrain'=>$request->constrain,
+            'summary'=>$request->summary,
+        ];
 
-        if ($request->hasFile('gambar')) {
-            $file = $request->file('gambar');
-            $thumbname = time() . '-' . $file->getClientOriginalName();
-            $file->move(public_path() . '/banner' . '/', $thumbname);
-            DB::table('banner')->where('id',$id)->update([
-                'gambar' => $thumbname,
-            ]);
-        }
+        Journal::where('id', $id)->update($data);
 
 
-
-        return redirect()->back()->with(['message'=>'Banner berhasil di update','status'=>'success']);
+        return response()->json(['statusCode'=>'200','message'=>'Journal data has been saved successfully !','data'=>$data], 200);
     }
 
     /**
@@ -80,8 +74,7 @@ class JournalController extends Controller
      */
     public function destroy($id)
     {
-
-        DB::table('banner')->where('id',$id)->delete();
-        return redirect()->route('admin.banner.index')->with(['message'=>'Banner berhasil di delete','status'=>'success']);
+        Journal::where('id', $id)->delete();
+        return response()->json(['statusCode'=>'200','message'=>'Journal data deleted successfully !'], 200);
     }
 }

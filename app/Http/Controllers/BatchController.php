@@ -6,16 +6,15 @@ use Illuminate\Http\Request;
 
 class BatchController extends Controller
 {
-     /**
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        return view('admin.banner', [
-            'data' => DB::table('banner')->get()
-        ]);
+        $data = Batch::paginate(10);
+        return response()->json(['statusCode'=>'200','message'=>'Data batch has been obtained !','data'=>$data], 200);
     }
 
     /**
@@ -26,25 +25,18 @@ class BatchController extends Controller
      */
     public function store(Request $request)
     {
+        // Validator
 
+        $data = [
+            'name'=>$request->name,
+            'max'=>$request->max,
+            'start_from'=>$request->start_from,
+            'end_from'=>$request->end_from,
+        ];
 
-        $this->validate($request, [
-            'gambar' => 'required',
-        ]);
+        Batch::create($data);
 
-
-        if ($request->hasFile('gambar')) {
-            $file = $request->file('gambar');
-            $thumbname = time() . '-' . $file->getClientOriginalName();
-            $file->move(public_path() . '/banner' . '/', $thumbname);
-            DB::table('banner')->insert([
-                'gambar' => $thumbname,
-            ]);
-        }
-
-
-
-        return redirect()->back()->with(['message'=>'Banner berhasil ditambahkan','status'=>'success']);
+        return response()->json(['statusCode'=>'200','message'=>'Batch data has been saved successfully !','data'=>$data], 200);
     }
 
 
@@ -58,18 +50,20 @@ class BatchController extends Controller
     public function update(Request $request, $id)
     {
 
-        if ($request->hasFile('gambar')) {
-            $file = $request->file('gambar');
-            $thumbname = time() . '-' . $file->getClientOriginalName();
-            $file->move(public_path() . '/banner' . '/', $thumbname);
-            DB::table('banner')->where('id',$id)->update([
-                'gambar' => $thumbname,
-            ]);
-        }
 
 
 
-        return redirect()->back()->with(['message'=>'Banner berhasil di update','status'=>'success']);
+        $data = [
+            'name'=>$request->name,
+            'max'=>$request->max,
+            'start_from'=>$request->start_from,
+            'end_from'=>$request->end_from,
+        ];
+
+        Batch::where('id',$id)->update($data);
+
+
+        return response()->json(['statusCode'=>'200','message'=>'Batch data has been saved successfully !','data'=>$data], 200);
     }
 
     /**
@@ -81,7 +75,8 @@ class BatchController extends Controller
     public function destroy($id)
     {
 
-        DB::table('banner')->where('id',$id)->delete();
-        return redirect()->route('admin.banner.index')->with(['message'=>'Banner berhasil di delete','status'=>'success']);
+        Batch::where('id',$id)->delete();
+
+        return response()->json(['statusCode'=>'200','message'=>'Batch data deleted successfully !'], 200);
     }
 }
